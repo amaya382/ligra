@@ -23,6 +23,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ligra.h"
 #include "math.h"
+#include "pcm/cpucounters.h"
 
 template <class vertex>
 struct PR_F {
@@ -80,8 +81,11 @@ void Compute(graph<vertex>& GA, commandLine P) {
   bool* frontier = newA(bool,n);
   {parallel_for(long i=0;i<n;i++) frontier[i] = 1;}
 
+  const auto pcm = PCM::getInstance();
+  pcm->program(PCM::DEFAULT_EVENTS, nullptr);
+
   vertexSubset Frontier(n,n,frontier);
-  
+  const auto start = getSystemCounterState();
   long iter = 0;
   while(iter++ < maxIters) {
     vertexSubset output = edgeMap(GA,Frontier,PR_F<vertex>(p_curr,p_next,GA.V),0);
@@ -91,12 +95,23 @@ void Compute(graph<vertex>& GA, commandLine P) {
       p_curr[i] = fabs(p_curr[i]-p_next[i]);
       }}
     double L1_norm = sequence::plusReduce(p_curr,n);
-    if(L1_norm < epsilon) break;
+    //if(L1_norm < epsilon) break;
     //reset p_curr
     vertexMap(Frontier,PR_Vertex_Reset(p_curr));
     swap(p_curr,p_next);
     Frontier.del(); 
     Frontier = output;
   }
-  Frontier.del(); free(p_curr); free(p_next); 
+  Frontier.del(); free(p_curr); free(p_next);
+
+  const auto end = getSystemCounterState();
+  std::cout << "pcm"
+    << "\nMemREAD[GB] " << getBytesReadFromMC(start, end) / 1024.0 / 1024.0 / 1024.0
+    << "\nMemWrite[GB] " << getBytesWrittenToMC(start, end) / 1024.0 / 1024.0 / 1024.0
+    << "\n#L2Miss " << getL2CacheMisses(start, end)
+    << "\n#L3Miss " << getL3CacheMisses(start, end)
+    << "\nL2Hit " << getL2CacheHitRatio(start, end)
+    << "\nL3Hit " << getL3CacheHitRatio(start, end)
+    << "\n#Retired " << getInstructionsRetired(start, end)
+    << "\nIPC " << getIPC(start, end) << std::endl;
 }

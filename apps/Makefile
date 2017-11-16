@@ -37,14 +37,20 @@ PCC = g++
 PCFLAGS = -O2 $(INTT) $(INTE) $(CODE) $(PD)
 endif
 
-COMMON= ligra.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h quickSort.h blockRadixSort.h transpose.h parseCommandLine.h byte.h byteRLE.h nibble.h byte-pd.h byteRLE-pd.h nibble-pd.h vertexSubset.h encoder.C
+COMMON= ligra.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h quickSort.h blockRadixSort.h transpose.h parseCommandLine.h byte.h byteRLE.h nibble.h byte-pd.h byteRLE-pd.h nibble-pd.h vertexSubset.h encoder.C pcm/cpucounters.cpp pcm/msr.cpp pcm/pci.cpp pcm/client_bw.cpp
 
-ALL= encoder BFS BC BellmanFord Components Radii PageRank PageRankDelta BFSCC BFS-Bitvector KCore MIS Triangle CF
+ALL= PageRank
+#ALL= encoder BFS BC BellmanFord Components Radii PageRank PageRankDelta BFSCC BFS-Bitvector KCore MIS Triangle CF
 
 all: $(ALL)
 
 % : %.C $(COMMON)
-	$(PCC) $(PCFLAGS) -o $@ $< 
+	$(PCC) $(PCFLAGS) -o $@ $< -pthread ./pcm/cpucounters.cpp ./pcm/msr.cpp ./pcm/pci.cpp ./pcm/client_bw.cpp -I ./pcm -std=c++14
+#	$(PCC) $(PCFLAGS) -std=gnu++11 -I ./pcm -o $@ $<
+
+.PHONY: pagerank
+pagerank:
+	$(PCC) $(PCFLAGS) -o $@ $< -pthread ./pcm/cpucounters.cpp ./pcm/msr.cpp ./pcm/pci.cpp ./pcm/client_bw.cpp -I ./pcm -std=c++14
 
 $(COMMON):
 	ln -s ../ligra/$@ .
