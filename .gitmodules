@@ -1,0 +1,3 @@
+[submodule "apps/pcm"]
+	path = apps/pcm
+	url = git@github.com:opcm/pcm.git

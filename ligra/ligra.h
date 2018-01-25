@@ -177,17 +177,18 @@ template<class vertex>
 void Compute(graph<vertex>&, commandLine);
 
 int parallel_main(int argc, char* argv[]) {
+  std::cout << "start!" << std::endl;
   commandLine P(argc,argv," [-s] <inFile>");
   char* iFile = P.getArgument(0);
   bool symmetric = P.getOptionValue("-s");
   bool compressed = P.getOptionValue("-c");
   bool binary = P.getOptionValue("-b");
-  long rounds = P.getOptionLongValue("-rounds",3);
+  long rounds = P.getOptionLongValue("-rounds",1);
   if (compressed) {
     if (symmetric) {
       graph<compressedSymmetricVertex> G =
         readCompressedGraph<compressedSymmetricVertex>(iFile,symmetric); //symmetric graph
-      Compute(G,P);
+      //Compute(G,P);
       for(int r=0;r<rounds;r++) {
         startTime();
         Compute(G,P);
@@ -197,7 +198,7 @@ int parallel_main(int argc, char* argv[]) {
     } else {
       graph<compressedAsymmetricVertex> G =
         readCompressedGraph<compressedAsymmetricVertex>(iFile,symmetric); //asymmetric graph
-      Compute(G,P);
+      //Compute(G,P);
       if(G.transposed) G.transpose();
       for(int r=0;r<rounds;r++) {
         startTime();
@@ -211,7 +212,7 @@ int parallel_main(int argc, char* argv[]) {
     if (symmetric) {
       graph<symmetricVertex> G =
         readGraph<symmetricVertex>(iFile,compressed,symmetric,binary); //symmetric graph
-      Compute(G,P);
+      //Compute(G,P);
       for(int r=0;r<rounds;r++) {
         startTime();
         Compute(G,P);
@@ -221,7 +222,7 @@ int parallel_main(int argc, char* argv[]) {
     } else {
       graph<asymmetricVertex> G =
         readGraph<asymmetricVertex>(iFile,compressed,symmetric,binary); //asymmetric graph
-      Compute(G,P);
+      //Compute(G,P);
       if(G.transposed) G.transpose();
       for(int r=0;r<rounds;r++) {
         startTime();
